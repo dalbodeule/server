@@ -4,7 +4,7 @@
     <Appenders>
         <Console name="LogToConsole">
             <PatternLayout>
-                <Pattern>[%5p] %d{y-m-d hh:mm:ss} (%F:%L) : %m%n</Pattern>
+                <Pattern>[%5p] %d{y-MM-dd hh:mm:ss} (%F:%L) : %m%n</Pattern>
             </PatternLayout>
         </Console>
     </Appenders>
