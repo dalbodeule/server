@@ -4,6 +4,7 @@ import io.grpc.ManagedChannelBuilder
 import org.apache.logging.log4j.kotlin.logger
 import space.mori.server.proto.Test
 import space.mori.server.proto.TestServiceGrpc
+import java.util.concurrent.TimeUnit
 
 fun main(args: Array<String>) {
     val logger = logger("Client")
@@ -17,7 +18,7 @@ fun main(args: Array<String>) {
 
     logger.info("response: ${response.greeting}")
 
-    channel.shutdown()
+    channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
 }
 
 fun getHelloRequest(greeting: String): Test.HelloRequest {

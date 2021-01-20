@@ -9,6 +9,7 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.plugin.java.JavaPlugin
 import space.mori.server.proto.Event
 import space.mori.server.proto.EventServiceGrpc
+import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 
 class Zombie : JavaPlugin(), Listener {
@@ -39,7 +40,7 @@ class Zombie : JavaPlugin(), Listener {
     }
 
     override fun onDisable() {
-        channel.shutdownNow()
+        channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
     }
 
     @EventHandler
