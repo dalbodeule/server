@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package space.mori.server.proto;
+option java_outer_classname = "Party";
+
+service PartyService {
+  rpc partyCreate(PartyCreateRequest) returns (PartyCreateResponse);
+  rpc partyJoin(PartyJoinRequest) returns (PartyJoinResponse);
+  rpc partyLeave(PartyLeaveRequest) returns (PartyLeaveResponse);
+  rpc partyRemove(PartyRemoveRequest) returns (PartyRemoveResponse);
+  rpc partySubscription(PartySubscriptionRequest) returns (stream PartySubscriptionStream);
+}
+
+message PartyCreateRequest {
+  string uuid = 1;
+}
+
+message PartyCreateResponse {
+  bool success = 1;
+  int32 party_code = 2;
+}
+
+message PartyJoinRequest {
+  string uuid = 1;
+  int32 party_code = 2;
+}
+
+message PartyJoinResponse {
+  bool success = 1;
+}
+
+message PartyLeaveRequest {
+  string uuid = 1;
+}
+
+message PartyLeaveResponse {
+  bool success = 1;
+}
+
+message PartyRemoveRequest {
+  string uuid = 1;
+}
+
+message PartyRemoveResponse {
+  bool success = 1;
+}
+
+message PartySubscriptionRequest {
+}
+
+message PartySubscriptionStream {
+  PartyStatus partyStatus = 1;
+  string uuid = 2;
+  int32 party_code = 3;
+}
+
+enum PartyStatus {
+  PARTY_CREATE = 0;
+  PARTY_JOIN = 1;
+  PARTY_LEAVE = 2;
+  PARTY_REMOVE = 3;
+}

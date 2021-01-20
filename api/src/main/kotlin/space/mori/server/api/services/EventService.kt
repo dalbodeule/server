@@ -5,16 +5,16 @@ import space.mori.server.api.Main
 import space.mori.server.proto.Event
 import space.mori.server.proto.EventServiceGrpc
 
-val connectedSession: MutableList<StreamObserver<Event.PlayerJoinResponse>> = mutableListOf()
-
 class EventService : EventServiceGrpc.EventServiceImplBase() {
+    val connectedSession: MutableList<StreamObserver<Event.PlayerJoinResponse>> = mutableListOf()
+
     override fun playerJoin(responseObserver: StreamObserver<Event.PlayerJoinResponse>?): StreamObserver<Event.PlayerJoinRequest> {
         class Observer : StreamObserver<Event.PlayerJoinRequest> {
             override fun onNext(value: Event.PlayerJoinRequest?) {
                 val uuid = value?.uuid
                 val username = value?.username
 
-                if (!connectedSession.contains(responseObserver) && responseObserver != null) {
+                if (responseObserver !in connectedSession && responseObserver != null) {
                     connectedSession.add(responseObserver)
                 }
 
