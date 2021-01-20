@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<Configuration status="INFO">
+    <Appenders>
+        <Console name="LogToConsole">
+            <PatternLayout>
+                <Pattern>[%5p] %d{y-m-d hh:mm:ss} (%F:%L) : %m%n</Pattern>
+            </PatternLayout>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="TRACE">
+            <AppenderRef ref="LogToConsole"/>
+        </Root>
+    </Loggers>
+</Configuration>

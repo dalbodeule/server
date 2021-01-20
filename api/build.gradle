@@ -1,0 +1,70 @@
+buildscript {
+    ext.grpc_version = '1.35.0'
+    ext.kotlin_version = '1.4.21'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.14'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'kotlin'
+apply plugin: 'application'
+apply plugin: 'com.google.protobuf'
+apply plugin: 'idea'
+
+mainClassName = "space.mori.server.api.MainKt"
+
+group 'server.mori'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+
+    compile "com.google.api.grpc:proto-google-common-protos:2.0.1"
+    compile "io.grpc:grpc-netty:${grpc_version}"
+    compile "io.grpc:grpc-protobuf:${grpc_version}"
+    compile "io.grpc:grpc-stub:${grpc_version}"
+
+    compile "org.apache.logging.log4j:log4j-api-kotlin:1.0.0"
+    compile "org.apache.logging.log4j:log4j-api:2.11.1"
+    compile "org.apache.logging.log4j:log4j-core:2.11.1"
+
+    compile 'io.github.cdimascio:dotenv-kotlin:6.2.2'
+
+    compile "javax.annotation:javax.annotation-api:1.3.2"
+
+    compile project(parent.path)
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+protobuf {
+    protobuf {
+        protoc { artifact = "com.google.protobuf:protoc:3.6.1" }
+        plugins {
+            grpc { artifact = "io.grpc:protoc-gen-grpc-java:${grpc_version}" }
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}

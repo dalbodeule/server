@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package space.mori.server.proto;
+option java_outer_classname = "Test";
+
+service TestService {
+  rpc SayHello(HelloRequest) returns (HelloResponse);
+}
+
+message HelloRequest {
+  string greeting = 1;
+}
+
+message HelloResponse {
+  string greeting = 1;
+}
