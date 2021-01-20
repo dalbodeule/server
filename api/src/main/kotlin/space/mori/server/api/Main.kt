@@ -1,10 +1,9 @@
 package space.mori.server.api
 
 import io.grpc.ServerBuilder
-import io.grpc.stub.StreamObserver
 import org.apache.logging.log4j.kotlin.logger
-import space.mori.server.proto.Test
-import space.mori.server.proto.TestServiceGrpc
+import space.mori.server.api.services.EventService
+import space.mori.server.api.services.TestService
 
 fun main() {
     Main().run()
@@ -19,20 +18,12 @@ class Main {
         val server = ServerBuilder
             .forPort(50000)
             .addService(TestService())
+            .addService(EventService())
             .build()
 
         server.start()
         logger.info("gRPC server started with port ${server.port}")
 
         server.awaitTermination()
-    }
-}
-
-class TestService : TestServiceGrpc.TestServiceImplBase() {
-    override fun sayHello(request: Test.HelloRequest?, responseObserver: StreamObserver<Test.HelloResponse>?) {
-        val response = Test.HelloResponse.newBuilder().setGreeting(request?.greeting ?: "hello").build()
-
-        responseObserver?.onNext(response)
-        responseObserver?.onCompleted()
     }
 }

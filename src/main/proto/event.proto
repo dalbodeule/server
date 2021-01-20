@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package space.mori.server.proto;
+option java_outer_classname = "Event";
+
+service EventService {
+  rpc playerJoin(stream PlayerJoinRequest) returns (stream PlayerJoinResponse);
+}
+
+message PlayerJoinRequest {
+  string uuid = 1;
+  string username = 2;
+}
+
+message PlayerJoinResponse {
+  string uuid = 1;
+  string username = 2;
+}
