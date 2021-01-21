@@ -9,6 +9,7 @@ service PartyService {
   rpc partyLeave(PartyLeaveRequest) returns (PartyLeaveResponse);
   rpc partyRemove(PartyRemoveRequest) returns (PartyRemoveResponse);
   rpc partySubscription(PartySubscriptionRequest) returns (stream PartySubscriptionStream);
+  rpc partyChat(PartyChatRequest) returns (PartyChatResponse);
 }
 
 message PartyCreateRequest {
@@ -52,6 +53,16 @@ message PartySubscriptionStream {
   PartyStatus partyStatus = 1;
   string uuid = 2;
   int32 party_code = 3;
+  string message = 4;
+}
+
+message PartyChatRequest {
+  string uuid = 1;
+  string message = 2;
+}
+
+message PartyChatResponse {
+  bool success = 1;
 }
 
 enum PartyStatus {
@@ -59,4 +70,5 @@ enum PartyStatus {
   PARTY_JOIN = 1;
   PARTY_LEAVE = 2;
   PARTY_REMOVE = 3;
+  PARTY_CHAT = 4;
 }

@@ -3,7 +3,7 @@ package space.mori.server.api.services
 import io.grpc.stub.StreamObserver
 import space.mori.server.api.Main
 import space.mori.server.proto.PartyServiceGrpc
-import java.util.UUID
+import java.util.*
 import space.mori.server.proto.Party as PartyService
 
 class PartyService : PartyServiceGrpc.PartyServiceImplBase() {
@@ -115,9 +115,26 @@ class PartyService : PartyServiceGrpc.PartyServiceImplBase() {
         }
     }
 
-    private fun partyEventAnnounce(uuid: UUID, partyCode: Int, partyStatus: PartyService.PartyStatus) {
+    override fun partyChat(
+        request: space.mori.server.proto.Party.PartyChatRequest?,
+        responseObserver: StreamObserver<space.mori.server.proto.Party.PartyChatResponse>?
+    ) {
+        if (request != null) {
+            val uuid = UUID.fromString(request.uuid)
+            val message = request.message
+
+            val partyCode = PartyManager.searchPartyID(uuid)
+
+            if (partyCode != -1) {
+                partyEventAnnounce(uuid, partyCode, PartyService.PartyStatus.PARTY_CHAT, message)
+            }
+        }
+    }
+
+    private fun partyEventAnnounce(uuid: UUID, partyCode: Int, partyStatus: PartyService.PartyStatus, message: String = "") {
         val eventContext = PartyService.PartySubscriptionStream.newBuilder()
-            .setUuid(uuid.toString()).setPartyCode(partyCode).setPartyStatus(partyStatus)
+            .setUuid(uuid.toString()).setPartyCode(partyCode)
+            .setPartyStatus(partyStatus).setMessage(message)
             .build()
 
         connectedSession.forEach {
