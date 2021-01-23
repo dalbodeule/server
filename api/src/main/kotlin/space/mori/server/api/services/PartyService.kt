@@ -8,6 +8,7 @@ import space.mori.server.proto.Party as PartyService
 
 class PartyService : PartyServiceGrpc.PartyServiceImplBase() {
     private val connectedSession: MutableList<StreamObserver<PartyService.PartySubscriptionStream>> = mutableListOf()
+    private val partyInviteStatus: MutableMap<String, Boolean> = mutableMapOf()
 
     override fun partyCreate(
         request: PartyService.PartyCreateRequest?,
@@ -15,6 +16,7 @@ class PartyService : PartyServiceGrpc.PartyServiceImplBase() {
     ) {
         if (request != null) {
             val uuid = UUID.fromString(request.uuid)
+            val displayName = request.displayName
 
             val result = PartyManager.partyCreate(uuid)
 
@@ -27,7 +29,7 @@ class PartyService : PartyServiceGrpc.PartyServiceImplBase() {
                 response.success = true
                 response.partyCode = result
 
-                partyEventAnnounce(uuid, result, PartyService.PartyStatus.PARTY_CREATE)
+                partyEventAnnounce(uuid, displayName, result, PartyService.PartyStatus.PARTY_CREATE)
             }
 
             responseObserver?.onNext(response.build())
@@ -47,10 +49,11 @@ class PartyService : PartyServiceGrpc.PartyServiceImplBase() {
         if (request != null) {
             val uuid = UUID.fromString(request.uuid)
             val partyCode = request.partyCode
+            val displayName = request.displayName
 
             val result = PartyManager.partyJoin(uuid, partyCode)
 
-            if (result) partyEventAnnounce(uuid, partyCode, PartyService.PartyStatus.PARTY_JOIN)
+            if (result) partyEventAnnounce(uuid, displayName, partyCode, PartyService.PartyStatus.PARTY_JOIN)
 
             responseObserver?.onNext(PartyService.PartyJoinResponse.newBuilder()
                 .setSuccess(result).build())
@@ -69,10 +72,11 @@ class PartyService : PartyServiceGrpc.PartyServiceImplBase() {
         if (request != null) {
             val uuid = UUID.fromString(request.uuid)
             val partyCode = PartyManager.searchPartyID(uuid)
+            val displayName = request.displayName
 
             val result = PartyManager.partyLeave(uuid)
 
-            if (result) partyEventAnnounce(uuid, partyCode, PartyService.PartyStatus.PARTY_LEAVE)
+            if (result) partyEventAnnounce(uuid, displayName, partyCode, PartyService.PartyStatus.PARTY_LEAVE)
 
             responseObserver?.onNext(PartyService.PartyLeaveResponse.newBuilder()
                 .setSuccess(result).build())
@@ -91,10 +95,11 @@ class PartyService : PartyServiceGrpc.PartyServiceImplBase() {
         if (request != null) {
             val uuid = UUID.fromString(request.uuid)
             val partyCode = PartyManager.searchPartyID(uuid)
+            val displayName = request.displayName
 
             val result = PartyManager.partyRemove(uuid)
 
-            if (result) partyEventAnnounce(uuid, partyCode, PartyService.PartyStatus.PARTY_REMOVE)
+            if (result) partyEventAnnounce(uuid, displayName, partyCode, PartyService.PartyStatus.PARTY_REMOVE)
 
             responseObserver?.onNext(PartyService.PartyRemoveResponse.newBuilder()
                 .setSuccess(result).build())
@@ -117,23 +122,97 @@ class PartyService : PartyServiceGrpc.PartyServiceImplBase() {
 
     override fun partyChat(
         request: space.mori.server.proto.Party.PartyChatRequest?,
-        responseObserver: StreamObserver<space.mori.server.proto.Party.PartyChatResponse>?
+        responseObserver: StreamObserver<PartyService.PartyChatResponse>?
     ) {
         if (request != null) {
             val uuid = UUID.fromString(request.uuid)
             val message = request.message
+            val displayName = request.displayName
 
             val partyCode = PartyManager.searchPartyID(uuid)
 
             if (partyCode != -1) {
-                partyEventAnnounce(uuid, partyCode, PartyService.PartyStatus.PARTY_CHAT, message)
+                partyEventAnnounce(uuid, displayName, partyCode, PartyService.PartyStatus.PARTY_CHAT, message)
+            }
+
+            responseObserver?.onNext(PartyService.PartyChatResponse.newBuilder()
+                .setSuccess(true).build())
+            responseObserver?.onCompleted()
+        }
+    }
+
+    override fun partyInviteUserSearch(
+        request: space.mori.server.proto.Party.PartyInviteUserSearchRequest?,
+        responseObserver: StreamObserver<PartyService.PartyInviteUserSearchResponse>?
+    ) {
+        if (request != null) {
+            val inviterUuid = UUID.fromString(request.inviterUuid)
+            val inviterDisplayName = request.inviterDisplayName
+            val partyCode = request.partyCode
+            val username = request.username
+
+            partyInviteStatus[username] = false
+
+            partyEventAnnounce(inviterUuid, inviterDisplayName, partyCode, PartyService.PartyStatus.PARTY_INVITE, username)
+
+            responseObserver?.onNext(PartyService.PartyInviteUserSearchResponse.newBuilder()
+                .setSuccess(true).build())
+            responseObserver?.onCompleted()
+
+            Thread.sleep(5000L)
+            if (partyInviteStatus[username] == false) {
+                partyEventAnnounce(inviterUuid, inviterDisplayName, partyCode, PartyService.PartyStatus.PARTY_INVITE_SUCCESS, "false")
             }
         }
     }
 
-    private fun partyEventAnnounce(uuid: UUID, partyCode: Int, partyStatus: PartyService.PartyStatus, message: String = "") {
+    override fun partyInviteProcess(
+        request: space.mori.server.proto.Party.PartyInviteProcessRequest?,
+        responseObserver: StreamObserver<space.mori.server.proto.Party.PartyInviteProcessResponse>?
+    ) {
+        if (request != null) {
+            val uuid = UUID.fromString(request.uuid)
+            val displayName = request.displayName
+            val username = request.username
+            val partyCode = request.partyCode
+            val success = request.success
+
+            partyEventAnnounce(uuid, displayName, partyCode, PartyService.PartyStatus.PARTY_INVITE_SUCCESS,
+                success.toString()
+            )
+
+            partyInviteStatus[username] = true
+        }
+    }
+
+    override fun partyInviteAccept(
+        request: space.mori.server.proto.Party.PartyInviteAcceptRequest?,
+        responseObserver: StreamObserver<space.mori.server.proto.Party.PartyInviteAcceptResponse>?
+    ) {
+        if (request != null) {
+            val uuid = UUID.fromString(request.uuid)
+            val displayName = request.displayName
+            val partyCode = request.partyCode
+            val success = request.success
+
+            if (success && PartyManager.validPartyID(partyCode)) {
+                partyEventAnnounce(uuid, displayName, partyCode, PartyService.PartyStatus.PARTY_INVITE_ACCEPT, "true")
+
+                PartyManager.partyJoin(uuid, partyCode)
+                partyEventAnnounce(uuid, displayName, partyCode, PartyService.PartyStatus.PARTY_JOIN)
+            } else {
+                partyEventAnnounce(uuid, displayName, partyCode, PartyService.PartyStatus.PARTY_INVITE_ACCEPT, "false")
+            }
+
+            responseObserver?.onNext(PartyService.PartyInviteAcceptResponse.newBuilder()
+                .setSuccess(true).build())
+            responseObserver?.onCompleted()
+        }
+    }
+
+    private fun partyEventAnnounce(uuid: UUID, displayName: String, partyCode: Int, partyStatus: PartyService.PartyStatus, message: String = "") {
         val eventContext = PartyService.PartySubscriptionStream.newBuilder()
-            .setUuid(uuid.toString()).setPartyCode(partyCode)
+            .setUuid(uuid.toString()).setDisplayName(displayName).setPartyCode(partyCode)
             .setPartyStatus(partyStatus).setMessage(message)
             .build()
 
@@ -160,6 +239,10 @@ object PartyManager {
         } else {
             -1
         }
+    }
+
+    internal fun validPartyID(partyId: Int): Boolean {
+        return PartyList.getOrNull(partyId) != null
     }
 
     internal fun partyCreate(uuid: UUID): Int {
@@ -227,19 +310,25 @@ object PartyManager {
 
 data class Party(
     val ownerUUID: UUID,
-    val partyUser: MutableList<UUID> = mutableListOf()
+    val partyUser: MutableList<UUID> = mutableListOf(ownerUUID)
 ) {
     internal fun addUser(uuid: UUID): Boolean {
-        return if (partyUser.size >= 3) {
-            false
-        } else {
-            partyUser.add(uuid)
-            true
+        return when {
+            partyUser.size >= 3 -> {
+                false
+            }
+            uuid in partyUser -> {
+                false
+            }
+            else -> {
+                partyUser.add(uuid)
+                true
+            }
         }
     }
 
     internal fun removeUser(uuid: UUID): Boolean {
-        return if (uuid in partyUser) {
+        return if (uuid in partyUser && uuid != ownerUUID) {
             partyUser.remove(uuid)
             true
         } else {

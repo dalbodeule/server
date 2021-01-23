@@ -37,7 +37,8 @@ class EventService : EventServiceGrpc.EventServiceImplBase() {
             override fun onError(t: Throwable?) {
                 if (t != null) {
                     Main.logger.error("Error!")
-                    Main.logger.trace(t)
+                    Main.logger.debug(t)
+                    Main.logger.trace(t.stackTrace)
 
                     if (responseObserver != null) {
                         connectedSession.remove(responseObserver)

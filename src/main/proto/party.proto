@@ -10,10 +10,14 @@ service PartyService {
   rpc partyRemove(PartyRemoveRequest) returns (PartyRemoveResponse);
   rpc partySubscription(PartySubscriptionRequest) returns (stream PartySubscriptionStream);
   rpc partyChat(PartyChatRequest) returns (PartyChatResponse);
+  rpc partyInviteUserSearch(PartyInviteUserSearchRequest) returns (PartyInviteUserSearchResponse);
+  rpc partyInviteProcess(PartyInviteProcessRequest) returns (PartyInviteProcessResponse);
+  rpc partyInviteAccept(PartyInviteAcceptRequest) returns (PartyInviteAcceptResponse);
 }
 
 message PartyCreateRequest {
   string uuid = 1;
+  string displayName = 2;
 }
 
 message PartyCreateResponse {
@@ -23,7 +27,8 @@ message PartyCreateResponse {
 
 message PartyJoinRequest {
   string uuid = 1;
-  int32 party_code = 2;
+  string displayName = 2;
+  int32 party_code = 3;
 }
 
 message PartyJoinResponse {
@@ -32,6 +37,7 @@ message PartyJoinResponse {
 
 message PartyLeaveRequest {
   string uuid = 1;
+  string displayName = 2;
 }
 
 message PartyLeaveResponse {
@@ -40,6 +46,7 @@ message PartyLeaveResponse {
 
 message PartyRemoveRequest {
   string uuid = 1;
+  string displayName = 2;
 }
 
 message PartyRemoveResponse {
@@ -52,13 +59,15 @@ message PartySubscriptionRequest {
 message PartySubscriptionStream {
   PartyStatus partyStatus = 1;
   string uuid = 2;
-  int32 party_code = 3;
-  string message = 4;
+  string displayName = 3;
+  int32 party_code = 4;
+  string message = 5;
 }
 
 message PartyChatRequest {
   string uuid = 1;
-  string message = 2;
+  string displayName = 2;
+  string message = 3;
 }
 
 message PartyChatResponse {
@@ -71,4 +80,41 @@ enum PartyStatus {
   PARTY_LEAVE = 2;
   PARTY_REMOVE = 3;
   PARTY_CHAT = 4;
+  PARTY_INVITE = 5;
+  PARTY_INVITE_SUCCESS = 6;
+  PARTY_INVITE_ACCEPT = 7;
+}
+
+message PartyInviteUserSearchRequest {
+  string username = 1;
+  string inviter_uuid = 2;
+  string inviter_displayName = 3;
+  int32 party_code = 4;
+}
+
+message PartyInviteUserSearchResponse {
+  bool success = 1;
+}
+
+message PartyInviteProcessRequest {
+  string uuid = 1;
+  string displayName = 2;
+  string username = 3;
+  int32 party_code = 4;
+  bool success = 5;
+}
+
+message PartyInviteProcessResponse {
+  bool success = 1;
+}
+
+message PartyInviteAcceptRequest {
+  string uuid = 1;
+  string displayName = 2;
+  int32 party_code = 3;
+  bool success = 4;
+}
+
+message PartyInviteAcceptResponse {
+  bool success = 1;
 }
